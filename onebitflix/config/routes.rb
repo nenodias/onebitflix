@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   devise_for :users
   root :to => "home#index"
+  match "*path", to: "home#index", via: :get
 
   namespace :api do
     namespace :v1 do
@@ -20,5 +21,4 @@ Rails.application.routes.draw do
     end
   end
 
-  match "*path", to: "home#index", via: :get
 end
