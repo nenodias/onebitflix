@@ -1,21 +1,21 @@
 <template>
   <div>
-    <v-layout row wrap class="movie_list">
+    <v-layout row wrap class="movie_list" v-if="movies.length > 0">
       <v-flex xs12>
         <p class="name">{{ name }}</p>
         <slick ref="slick" :options="slickOptions">
           <a
             v-for="movie in movies"
-            :key="movie.id"
+            :key="movie.attributes.id"
             href="#"
-            @click="openDetails($event, movie.id)"
-            ><img :src="movie.thumb_url" />
+            @click="openDetails($event, movie.attributes.id, movie.type)"
+            ><img :src="movie.attributes.thumbnail_url" />
           </a>
         </slick>
       </v-flex>
     </v-layout>
     <MovieMenu
-      v-if="menuOpen"
+      v-if="menuOpen && currentMovieId == movieId"
       :id="movieId"
       :type="movieType"
       :closeDetails="closeDetails"
@@ -26,6 +26,8 @@
 <script>
 import MovieMenu from "./_movie_menu.vue";
 import Slick from "vue-slick";
+import { mapState } from "vuex";
+import { mapActions } from "vuex";
 
 export default {
   props: {
@@ -70,18 +72,28 @@ export default {
     MovieMenu,
   },
   methods: {
-    openDetails(e, id) {
+    openDetails(e, id, type) {
       e.preventDefault();
       if (this.menuOpen == true && this.movieId == id) {
         this.closeDetails();
       } else {
+        this.changeId(id);
         this.movieId = parseInt(id);
-        this.menuOpen = true;
+        this.movieType = type;
+        this.menuOpen = true 
       }
     },
     closeDetails() {
       this.menuOpen = false;
     },
+    ...mapActions({
+      changeId: "MovieMenu/changeId",
+    }),
+  },
+  computed: {
+    ...mapState({
+      currentMovieId: (state) => state.MovieMenu.currentMovieId,
+    }),
   },
 };
 </script>

@@ -11,8 +11,8 @@
         </v-btn>
       </v-flex>
       <Details v-if="contentActive == 'details'" :watchable="watchable" />
-      <!-- <Episodes v-if = "contentActive == 'episodes'" /> -->
-      <Reviews v-if="contentActive == 'reviews'" :watchable="watchable" />
+      <!-- <Episodes v-if="contentActive == 'episodes'" /> -->
+      <Reviews v-if="contentActive == 'reviews'" :reviews="reviews" :id="watchable.attributes.id" :type="watchable.type"/>
     </v-layout>
     <v-layout row wrap class="navigation">
       <v-flex md6>
@@ -49,22 +49,8 @@
 <script>
 import Details from "./_details.vue";
 import Reviews from "./_reviews.vue";
-
-// ------- Dados Fake apenas para testarmos o layout -------- //
-const name = "Criando uma API Completa com Rails";
-const watchable = {
-  id: 1,
-  type: "serie",
-  attributes: {
-    title: "Ruby On Rails API Completa",
-    reviews_count: 5,
-    description:
-      "Saber como criar e consumir API's é fundamental para qualquer programador, então nessa pequena série nós vamos ver o que é essencial para criar uma usando RoR.",
-    category: "Ruby On Rails",
-    thumbnail_cover_url:
-      "https://onebitcode.com/wp-content/uploads/2018/05/rails-admin-serie-cover.png",
-  },
-};
+import { mapActions } from "vuex";
+import { mapState } from "vuex";
 
 export default {
   props: {
@@ -84,7 +70,6 @@ export default {
   data() {
     return {
       contentActive: "details",
-      watchable: watchable,
     };
   },
   methods: {
@@ -94,11 +79,31 @@ export default {
     close() {
       this.closeDetails();
     },
+    ...mapActions({
+      getWatchable: 'Watchable/getWatchable',
+      getReviews: 'Review/index'
+    }),
+  },
+  watch: {
+    id: function () {
+      this.getWatchable({ id: this.id, type: this.type });
+    },
+    serie: function () {
+      this.getWatchable({ id: this.id, type: this.type });
+    },
   },
   components: {
     Details: Details,
     Reviews: Reviews,
   },
+  mounted() {
+    this.getWatchable({id: this.id, type: this.type})
+    this.getReviews({id: this.id, type: this.type})
+  },
+  computed: mapState({
+    watchable: (state) => state.Watchable.watchable,
+    reviews: state => state.Review.reviews,
+  }),
 };
 </script>
  

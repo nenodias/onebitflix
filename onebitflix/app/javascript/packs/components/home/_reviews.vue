@@ -4,23 +4,29 @@
       <v-layout row>
         <v-flex xs12 sm12>
           <v-card>
-            <v-list three-line class="review - box" dark subheader>
+            <v-list
+              three-line
+              class="review - box"
+              dark
+              subheader
+              v-if="reviews.length > 0"
+            >
               <template v-for="(review, index) in reviews">
                 <v-list-item :key="index" ripple>
                   <v-list-item-content>
                     <v-list-item-subtitle>{{
-                      review.description
+                      review.attributes.description
                     }}</v-list-item-subtitle>
                     <v-list-item-subtitle>
                       <v-icon
-                        v-for="r in review.avaliation"
+                        v-for="r in review.attributes.rating"
                         :key="r"
                         color="red"
                         >favorite</v-icon
                       >
                       <v-icon
-                        v-for="r in 5 - review.avaliation"
-                        :key="review.avaliation + r"
+                        v-for="r in (5 - review.attributes.rating)"
+                        :key="review.attributes.rating + r"
                         color="white"
                         >favorite</v-icon
                       >
@@ -44,8 +50,7 @@
           <v-container fluid>
             <v-layout row wrap>
               <heart-rating
-                rating-selected="rating = $event"
-                :rating="rating"
+                v-model="rating"
                 :item-size="20"
                 :show-rating="false"
                 active-color="#f44336"
@@ -56,17 +61,32 @@
               <v-flex md12>
                 <v-text-field
                   name="input-1"
-                  label="Descreva o que achou em pelo menos
-180 caracters..."
+                  label="Descreva o que achou em pelo menos 50 caracteres..."
                   textarea
                   dark
                   color="red"
                   rows="2"
+                  v-model="description"
+                  required
                 ></v-text-field>
               </v-flex>
 
               <v-flex xs8 md3>
-                <v-btn dark large> <v-icon left>send</v-icon>Enviar </v-btn>
+                <v-btn dark large @click="createReview">
+                  <v-icon left>send</v-icon>Enviar
+                </v-btn>
+              </v-flex>
+
+              <v-flex xs12>
+                <v-alert
+                  :value="true"
+                  outlined
+                  color="error"
+                  icon="priority_high"
+                  v-if="errorActive"
+                >
+                  {{ errorMessage }}.
+                </v-alert>
               </v-flex>
             </v-layout>
           </v-container>
@@ -77,74 +97,54 @@
 </template>
  
 <script>
-const reviews_mock = [
-  {
-    description:
-      "I'll be in your neighborhood doing errands this weekend. Do you want to hang out?",
-    avaliation: 3,
-  },
-  {
-    description:
-      "Wish I could come, but I'm out of town this weekend. I'll be in your neighborhood doing errands this weekend. Do you want to hang out?",
-    avaliation: 3,
-  },
-  {
-    description: "Do you have Paris recommendations? Have you ever been?",
-    avaliation: 1,
-  },
-  {
-    description:
-      "Have any ideas about what we should get Heidi for her birthday?",
-    avaliation: 3,
-  },
-  {
-    description:
-      "We should eat this: Grate, Squash, Corn, and tomatillo Tacos.",
-    avaliation: 5,
-  },
-  {
-    description:
-      "I'll be in your neighborhood doing errands this weekend. Do you want to hang out?",
-    avaliation: 3,
-  },
-  {
-    description: "Wish I could come, but I'm out of town this weekend.",
-    avaliation: 3,
-  },
-  {
-    description: "Do you have Paris recommendations? Have you ever been?",
-    avaliation: 3,
-  },
-  {
-    description:
-      "Have any ideas about what we should get Heidi for her birthday?",
-    avaliation: 3,
-  },
-  {
-    description:
-      "We should eat this: Grate, Squash, Corn, and tomatillo Tacos.",
-    avaliation: 3,
-  },
-];
-
 import { HeartRating } from "vue-rate-it";
+import { mapState } from "vuex";
+import { mapActions } from "vuex";
 
 export default {
   props: {
-    watchable: {
-      type: Object,
+    reviews: {
+      type: Array,
+      required: true,
+    },
+    id: {
+      type: Number,
+      required: true,
+    },
+    type: {
+      type: String,
       required: true,
     },
   },
   data() {
     return {
-      reviews: reviews_mock,
-      rating: 2,
+      rating: 0,
+      description: "",
+      errorReview: null,
     };
   },
   components: {
     HeartRating,
   },
+  methods: {
+    createReview() {
+      this.reviewCreate({
+        id: this.id,
+        type: this.type,
+        rating: this.rating,
+        description: this.description,
+      });
+      this.description = "";
+      this.rating = 0;
+    },
+    ...mapActions({
+      reviewCreate: "Review/create",
+    }),
+  },
+  computed: mapState({
+    errorMessage: (state) => state.Review.errorMessage,
+    errorActive: (state) => state.Review.errorActive,
+  }),
 };
 </script>
  
